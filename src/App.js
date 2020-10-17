@@ -1,24 +1,35 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { BlogList } from './components/BlogList';
+import Hero from './components/Hero';
+import { Loading } from './components/Loading';
 
+import { request } from 'graphql-request';
 function App() {
+  const [ posts, setPosts ] = React.useState(null);
+
+  React.useEffect(() => {
+    const fetchPosts = async () => {
+      const posts = await request('https://api-us-east-1.graphcms.com/v2/ckg9mtbbmnw3a01yy0ir1fnkv/master', `
+        { posts { author { biography id name picture { id url size } } content { html markdown text } coverImage { id url
+          fileName } slug title tags category } }
+        `
+      );
+
+      console.log(posts.posts);
+      setPosts(posts);
+    };
+
+    fetchPosts();
+  }, []);
+
+  if(!posts)
+    return <Loading />;
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Hero post={posts.posts[0]} />
+      <BlogList posts={posts.posts} />
     </div>
   );
 }
